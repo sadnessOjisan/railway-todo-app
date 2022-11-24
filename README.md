@@ -47,3 +47,18 @@ yarn install
 ```powershell
 yarn start
 ```
+
+
+### station2 インストール　実行順序 あっているか確認用
+1 npm i eslint   
+
+2 ./node_modules/.bin/eslint --init
+
+3 npm install --save-dev prettier eslint-config-prettier
+
+#### 参考記事
+eslintの導入手順
+https://zenn.dev/popcorn/scraps/6e7002f56a3451
+
+npm install の --save-dev って何？
+https://qiita.com/kohecchi/items/092fcbc490a249a2d05c
