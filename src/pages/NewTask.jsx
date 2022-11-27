@@ -28,7 +28,7 @@ export const NewTask = () => {
       title: title,
       detail: detail,
       done: false,
-      limit: dayjs(limit).format,
+      limit: dayjs(limit).format(),
     };
     console.log(limit, "limit");
 

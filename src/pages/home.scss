@@ -74,3 +74,28 @@
 .display-select {
   width: 100%;
 }
+
+@media screen and (max-width: 768px) {
+    .list-header {
+        display: block;
+    }
+    .tasks-header {
+        display: block;
+    } 
+
+    .taskList {
+        width: 650px;
+    }
+}
+
+@media screen and (max-width: 320px) {
+    .list-header {
+        display: block;
+    }
+    .tasks-header {
+        display: block;
+    }
+    .taskList {
+        width: 300px;
+    }
+}

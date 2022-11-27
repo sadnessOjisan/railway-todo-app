@@ -11,6 +11,7 @@ export const Home = () => {
   const [isDoneDisplay, setIsDoneDisplay] = useState("todo"); // todo->未完了 done->完了
   const [lists, setLists] = useState([]);
   const [selectListId, setSelectListId] = useState();
+  const [selectList, setSelectList] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [cookies] = useCookies();
@@ -30,10 +31,51 @@ export const Home = () => {
       });
   }, []);
 
+  function clickKeyboard(event) {
+    console.log(lists, 'lists')
+    console.log(event, 'event')
+    console.log(selectList, "selectList")
+
+    // 以下をuseStateに置き換える ここでdocumentを使うのはまずい
+    // const activeTab = document.querySelector('.list-tab-item.active');
+    
+    // if (!activeTab) return;
+    if (event.keyCode === 39) {
+    //   const id = activeTab.nextSibling.ariaLabel;
+    //   console.log(activeTab.nextSibling, "activeTab.nextSibling")
+    //   console.log(id, "id")
+        let nextId = null
+        lists.map((list, key) => { 
+            if(list.id === selectList[0].id) {
+                nextId = list[key+1]?.id
+            }
+        })
+        if (!nextId) return;
+        handleSelectList(nextId)
+    }
+    if (event.keyCode === 37) {
+        // const id = activeTab.previousSibling.ariaLabel;
+        // console.log(activeTab.nextSibling, "activeTab.nextSibling")
+        //   console.log(id, "id")
+        let previousId = null
+        lists.map((list, key) => { 
+            if(list?.id === selectList[0].id) {
+                previousId = list[key-1]?.id
+            }
+        })
+        if (!previousId) return;
+      handleSelectList(previousId)
+    }
+  };
+
   useEffect(() => {
     const listId = lists[0]?.id;
+    document.addEventListener("keydown", clickKeyboard, false);
     if (typeof listId !== "undefined") {
+      console.log(listId)
+      setSelectList([lists[0]])
       setSelectListId(listId);
+      console.log(selectListId, 'selectListId')
       axios
         .get(`${url}/lists/${listId}/tasks`, {
           headers: {
@@ -51,6 +93,13 @@ export const Home = () => {
 
   const handleSelectList = (id) => {
     setSelectListId(id);
+    lists.map((list, key) => { 
+        if(list?.id === selectListId) {
+            console.log(selectListId, 'selectListId')
+            setSelectList([list]);
+        }
+    })
+    console.log(selectList, "selectList")
     axios
       .get(`${url}/lists/${id}/tasks`, {
         headers: {
@@ -58,6 +107,7 @@ export const Home = () => {
         },
       })
       .then((res) => {
+        // console.log(res, "タスク")
         setTasks(res.data.tasks);
       })
       .catch((err) => {
@@ -93,6 +143,10 @@ export const Home = () => {
                   key={key}
                   className={`list-tab-item ${isActive ? "active" : ""}`}
                   onClick={() => handleSelectList(list.id)}
+                  aria-label={list.id}
+                  id={key}
+                //   onClick={escFunction}
+                  
                 >
                   {list.title}
                 </li>
@@ -126,11 +180,11 @@ export const Home = () => {
 };
 
 // 表示するタスク
-  const Tasks = (props) => {
+const Tasks = (props) => {
   const { tasks, selectListId, isDoneDisplay } = props;
   if (tasks === null) return <></>;
 
-  if (isDoneDisplay == "done") {
+  if (isDoneDisplay === "done") {
     return (
       <ul>
         {tasks
@@ -182,6 +236,7 @@ export const Home = () => {
                   期限日を{-getDiff(task)}日経過してます
                 </span>)}
               </>)}
+              
               {task.done ? "完了" : "未完了"}
             </Link>
           </li>
