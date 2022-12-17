@@ -10,8 +10,8 @@ import dayjs from "dayjs";
 export const Home = () => {
   const [isDoneDisplay, setIsDoneDisplay] = useState("todo"); // todo->未完了 done->完了
   const [lists, setLists] = useState([]);
-  const [selectListId, setSelectListId] = useState();
   const [selectList, setSelectList] = useState([]);
+  const [selectListKey, setSelectListKey] = useState(0);
   const [tasks, setTasks] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [cookies] = useCookies();
@@ -32,39 +32,24 @@ export const Home = () => {
   }, []);
 
   function clickKeyboard(event) {
-    console.log(lists, 'lists')
-    console.log(event, 'event')
-    console.log(selectList, "selectList")
 
     // 以下をuseStateに置き換える ここでdocumentを使うのはまずい
     // const activeTab = document.querySelector('.list-tab-item.active');
     
-    // if (!activeTab) return;
     if (event.keyCode === 39) {
-    //   const id = activeTab.nextSibling.ariaLabel;
-    //   console.log(activeTab.nextSibling, "activeTab.nextSibling")
-    //   console.log(id, "id")
-        let nextId = null
-        lists.map((list, key) => { 
-            if(list.id === selectList[0].id) {
-                nextId = list[key+1]?.id
-            }
-        })
-        if (!nextId) return;
-        handleSelectList(nextId)
+        console.log(selectListKey, "selectListKey")
+        
+        // selectListとselectListIdがここの時点で消えてる。
+        // useEffectの第二引数に入れたがループされていて動かなくなった
+        let tmp = lists[selectListKey + 1]
+        console.log(tmp)
+        handleSelectList(tmp.id, selectListKey + 1)
     }
     if (event.keyCode === 37) {
         // const id = activeTab.previousSibling.ariaLabel;
         // console.log(activeTab.nextSibling, "activeTab.nextSibling")
         //   console.log(id, "id")
-        let previousId = null
-        lists.map((list, key) => { 
-            if(list?.id === selectList[0].id) {
-                previousId = list[key-1]?.id
-            }
-        })
-        if (!previousId) return;
-      handleSelectList(previousId)
+        handleSelectList()
     }
   };
 
@@ -72,10 +57,7 @@ export const Home = () => {
     const listId = lists[0]?.id;
     document.addEventListener("keydown", clickKeyboard, false);
     if (typeof listId !== "undefined") {
-      console.log(listId)
-      setSelectList([lists[0]])
-      setSelectListId(listId);
-      console.log(selectListId, 'selectListId')
+    setSelectList([lists[0]])
       axios
         .get(`${url}/lists/${listId}/tasks`, {
           headers: {
@@ -91,15 +73,8 @@ export const Home = () => {
     }
   }, [lists]);
 
-  const handleSelectList = (id) => {
-    setSelectListId(id);
-    lists.map((list, key) => { 
-        if(list?.id === selectListId) {
-            console.log(selectListId, 'selectListId')
-            setSelectList([list]);
-        }
-    })
-    console.log(selectList, "selectList")
+  const handleSelectList = (id, key) => {
+    setSelectListKey(key);
     axios
       .get(`${url}/lists/${id}/tasks`, {
         headers: {
@@ -107,7 +82,6 @@ export const Home = () => {
         },
       })
       .then((res) => {
-        // console.log(res, "タスク")
         setTasks(res.data.tasks);
       })
       .catch((err) => {
@@ -129,7 +103,7 @@ export const Home = () => {
                 <Link to="/list/new">リスト新規作成</Link>
               </p>
               <p>
-                <Link to={`/lists/${selectListId}/edit`}>
+                <Link to={`/lists/${lists[selectListKey]}/edit`}>
                   選択中のリストを編集
                 </Link>
               </p>
@@ -137,18 +111,19 @@ export const Home = () => {
           </div>
           <ul className="list-tab">
             {lists.map((list, key) => {
-              const isActive = list.id === selectListId;
+              const isActive = list.id === lists[selectListKey]?.id;
+            //   console.log(key, "key")
+            //   console.log(list, "list")
               return (
                 <li
                   key={key}
                   className={`list-tab-item ${isActive ? "active" : ""}`}
-                  onClick={() => handleSelectList(list.id)}
+                  onClick={() => handleSelectList(list.id, key)}
                   aria-label={list.id}
-                  id={key}
                 //   onClick={escFunction}
                   
                 >
-                  {list.title}
+                  {list.title} {selectListKey}
                 </li>
               );
             })}
@@ -169,7 +144,7 @@ export const Home = () => {
             </div>
             <Tasks
               tasks={tasks}
-              selectListId={selectListId}
+              selectListId={lists[selectListKey]}
               isDoneDisplay={isDoneDisplay}
             />
           </div>
